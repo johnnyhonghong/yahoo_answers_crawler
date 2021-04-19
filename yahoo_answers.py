@@ -163,7 +163,7 @@ def get_all_qid(is_popular:bool) -> list:
         # get qid
         for question in data['questions']:
             qid_list.append(question['qid'])
-        time.sleep(1)
+        time.sleep(2)
     print("")
     return qid_list
 if __name__ == "__main__":
@@ -191,11 +191,9 @@ if __name__ == "__main__":
         union_qid_set = set(explore_qid_list) | set(answer_qid_list)
         print(f"union qid length: {len(union_qid_set)}")
         # qid parameter init
-        start = 1
-        count = 5
         
-        answer_length = 1
         for question_id in union_qid_set:
+            print(f"\rqid: {question_id}",end="")
             question_dir = f"{dist_dir}/{question_id}"
             if not os.path.isdir(question_dir):
                 os.mkdir(question_dir)
@@ -205,6 +203,8 @@ if __name__ == "__main__":
                 json.dump(question_data, json_file)
             # answer process
             answer_count = 0
+            start = 1
+            count = 5
             while True:
                 answer_data = yahoo_answers_spider.get_answer_list(question_id,
                                                                    start=start,
@@ -217,13 +217,11 @@ if __name__ == "__main__":
                         json.dump(answer_data, json_file)
                 else:
                     break
-                
-                print(answer_length)
                 start += count
                 
-                time.sleep(1)
-                
-        # qid 內的 reservice
+                time.sleep(2)
+        print("")
+        # qid reservice
         #pass
          
     
