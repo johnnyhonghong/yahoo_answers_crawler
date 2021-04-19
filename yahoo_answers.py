@@ -192,8 +192,12 @@ if __name__ == "__main__":
     
     dir_path = ""
     yahoo_answers_spider = YahooAnswersSpider()
-    
-    category_id_list = ['2115500139']
+    category_id_list = []
+    # read sid.txt
+    with open("./sid.txt", 'r') as txt_file:
+        for line in txt_file.readlines():
+            category_id_list.append(line.replace("\n",""))
+    print(category_id_list)
     # 依照sid，先掃qid，再進入qid
     for category_id in category_id_list:
         
