@@ -35,7 +35,7 @@ class YahooAnswersSpider():
             print(f'return error: {data["payload"]}')
         return data['payload']
 
-    def get_question_list(self, is_popular=False, category_id="0", offset="", count=20) -> dict:
+    def get_question_list(self, is_popular=False, category_id="", offset="", count=20) -> dict:
         """取得問題列表(文章列表)資料
         Args:
             is_popular: 探索或解答 
@@ -121,7 +121,29 @@ class YahooAnswersSpider():
             }
         }
         return self.request_put(payload)
-
+    def get_extra_question_list(self, qid: str) -> dict:
+        """取得問題列表(文章列表)資料
+        Args:
+            is_popular: 探索或解答 
+            category_id: QA 種類
+            offset: 偏移值(ajax load)
+            count: 回傳 QA 數量
+            data: 回傳 QA 列表
+        """
+        # payload config
+        payload = {
+            "type": "CALL_RESERVICE",
+            "payload": {
+                "lang": "zh-Hant-TW",
+                "qid": qid
+            },
+            "reservice": {
+                "name": "FETCH_EXTRA_QUESTION_LIST_END",
+                "start": "FETCH_EXTRA_QUESTION_LIST_START",
+                "state": "CREATED"
+            }
+        }
+        return self.request_put(payload)
 def get_category_path(category = "") -> str:
     try:
         if category != "":
@@ -142,7 +164,7 @@ def get_category_path(category = "") -> str:
         print("some errors")
         path_str = "some errors"
     return path_str
-def get_all_qid(is_popular:bool) -> list:
+def get_all_qid(is_popular:bool, category_id: str) -> list:
     offset = ""
     can_load_more = True
     qid_list = []
@@ -167,8 +189,10 @@ def get_all_qid(is_popular:bool) -> list:
     print("")
     return qid_list
 if __name__ == "__main__":
+    
     dir_path = ""
     yahoo_answers_spider = YahooAnswersSpider()
+    
     category_id_list = ['2115500139']
     # 依照sid，先掃qid，再進入qid
     for category_id in category_id_list:
@@ -186,8 +210,8 @@ if __name__ == "__main__":
             if not os.path.isdir(dist_dir):
                 os.mkdir(dist_dir)
         # get all qid
-        explore_qid_list = get_all_qid(is_popular=True)
-        answer_qid_list = get_all_qid(is_popular=False)
+        explore_qid_list = get_all_qid(is_popular=True, category_id=category_id)
+        answer_qid_list = get_all_qid(is_popular=False, category_id=category_id)
         union_qid_set = set(explore_qid_list) | set(answer_qid_list)
         print(f"union qid length: {len(union_qid_set)}")
         # qid parameter init
@@ -218,9 +242,14 @@ if __name__ == "__main__":
                 else:
                     break
                 start += count
-                
+                # get extra question
+                """
+                question_data = yahoo_answers_spider.get_extra_question_list("20210418115252AAO7dbn")
+                """
                 time.sleep(2)
         print("")
+        
+    
         # qid reservice
         #pass
          
