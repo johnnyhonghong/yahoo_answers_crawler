@@ -4,47 +4,56 @@ import random
 import requests
 from pprint import pprint
 from typing import Dict
-
-
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import os
+import json
+this_file_path = os.path.realpath(__file__)
+this_file_path = this_file_path.replace('\\','/')
+p_dir = '/'.join(this_file_path.split('/')[:-1])
 class YahooAnswersSpider():
     """Yahoo知識+ 爬蟲"""
-    def __init__(self) -> None:
+    def __init__(self):
         self.api_url = 'https://tw.answers.yahoo.com/_reservice_/'
         self.headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36',
             'content-type': 'application/json'
         }
 
-    def request_put(self, payload: Dict) -> Dict:
-        """送出 PUT 請求
-
-        :param payload: 傳遞參數資料
-        :return data: requests 回應資料
+    def request_put(self, payload: Dict) -> dict:
+        """
+        PUT request
+        Args:
+            payload: 傳遞參數資料(json)
         """
         response = requests.put(self.api_url, data=json.dumps(payload), headers=self.headers)
         if response.status_code != requests.codes.ok:
-            print(f'網頁載入發生問題：{payload}')
+            print(f'Load error： {payload}')
             return None
         data = response.json()
         if data['error']:
-            print(f'回傳資料發生錯誤：{data["payload"]}')
-        return data["payload"]
+            print(f'return error: {data["payload"]}')
+        return data['payload']
 
-    def get_question_list(self, is_popular=False, category_id="0", offset="", count=15) -> Dict:
+    def get_question_list(self, is_popular=False, category_id="0", offset="", count=20) -> dict:
         """取得問題列表(文章列表)資料
-
-        :param is_popular: 是否取得熱門問題，否則取得最新問題
-        :param category_id: 分類
-        :param offset: 偏移值(字串)
-        :param count: 數量
-        :return data: 回應資料
+        Args:
+            is_popular: 探索或解答 
+            category_id: QA 種類
+            offset: 偏移值(ajax load)
+            count: 回傳 QA 數量
+            data: 回傳 QA 列表
         """
-        reservice_name = "FETCH_ANSWER_STREAMS_END"
-        reservice_start = "FETCH_ANSWER_STREAMS_START"
-        if is_popular:
+        
+        if not is_popular: # 解答
+            reservice_name = "FETCH_ANSWER_STREAMS_END"
+            reservice_start = "FETCH_ANSWER_STREAMS_START"
+            
+        elif is_popular: # 探索
             reservice_name = "FETCH_DISCOVER_STREAMS_END"
             reservice_start = "FETCH_DISCOVER_STREAMS_START"
-
+            
+        # payload config
         payload = {
             "type": "CALL_RESERVICE",
             "payload": {
@@ -61,11 +70,10 @@ class YahooAnswersSpider():
         }
         return self.request_put(payload)
 
-    def get_question(self, qid: str) -> Dict:
-        """取得問題(文章)資料
-
-        :param qid: 問題 ID
-        :return data: 回應資料
+    def get_question(self, qid: str) -> dict:
+        """
+        Args:
+            qid: question ID
         """
         payload = {
             "type": "CALL_RESERVICE",
@@ -84,13 +92,14 @@ class YahooAnswersSpider():
         }
         return self.request_put(payload)
 
-    def get_answer_list(self, qid: str, start=1, count=15) -> Dict:
-        """取得解答(留言)資料
-
-        :param qid: 文章 ID
-        :param start: 解答抓取起始值(偏移值)
-        :param count: 數量
-        :return data: 回應資料
+    def get_answer_list(self, qid: str, start=1, count=10) -> dict:
+        """
+        取得解答(留言)資料
+        Args:
+            qid: question ID
+            start: 解答抓取起始值(偏移值)
+            count: 數量
+            data: 回應資料
         """
         payload = {
             "type": "CALL_RESERVICE",
@@ -113,19 +122,108 @@ class YahooAnswersSpider():
         }
         return self.request_put(payload)
 
-
+def get_category_path(category = "") -> str:
+    try:
+        if category != "":
+            category = f"?sid={category}"
+        
+        url = f"https://tw.answers.yahoo.com/dir/index{category}"
+        html = urlopen(url).read()
+        soup = BeautifulSoup(html, 'lxml')
+        category_path = soup.findAll(class_ = "CategoryBoard__paths___g8qpm")
+        path = []
+        if category_path:
+            for line in category_path[0].findAll("li"):
+                path.append(line.text)
+            path_str = '/'.join(path)
+        else:
+            print("CategoryBoard__paths___g8qpm not found")
+    except:
+        print("some errors")
+        path_str = "some errors"
+    return path_str
+def get_all_qid(is_popular:bool) -> list:
+    offset = ""
+    can_load_more = True
+    qid_list = []
+    while can_load_more:
+        # get reservice data
+        data = yahoo_answers_spider.get_question_list(is_popular=is_popular,
+                                                      category_id=category_id,
+                                                      offset=offset)
+        # get offset
+        offset = data['offset']
+        if is_popular:
+            prefix = "explore"
+        elif not is_popular:
+            prefix = "answer"
+        print(f"\rnumber of {prefix} qid: {len(qid_list)},{offset}",end="")
+        # get canLoadMore
+        can_load_more = data['canLoadMore']
+        # get qid
+        for question in data['questions']:
+            qid_list.append(question['qid'])
+        time.sleep(1)
+    print("")
+    return qid_list
 if __name__ == "__main__":
+    dir_path = ""
     yahoo_answers_spider = YahooAnswersSpider()
-
-    data = yahoo_answers_spider.get_question_list(is_popular=False, category_id='2115500139')
-    print(data)
-    # with open(f'yahoo_answers.json', 'w', encoding='utf-8') as f:
-    #     f.write(json.dumps(data))
-    # for question in data['questions']:
-    #     print(question['title'][:20])
-
-    # data = yahoo_answers_spider.get_question('20210310121058AAxKYlh')
-    # print(data)
-
-    # data = yahoo_answers_spider.get_answer_list('20210310121058AAxKYlh', start=1)
-    # print(data)
+    category_id_list = ['2115500139']
+    # 依照sid，先掃qid，再進入qid
+    for category_id in category_id_list:
+        
+        # get category path
+        path_str = get_category_path(category = category_id)
+        print(f"path: {path_str}")
+        print(f"sid: {category_id}")
+        # mkdir
+        path_list = path_str.split("/")
+        level_dir = ""
+        for path_dir in path_list:
+            level_dir = f"{level_dir}/{path_dir}"
+            dist_dir = f"{p_dir}{level_dir}"
+            if not os.path.isdir(dist_dir):
+                os.mkdir(dist_dir)
+        # get all qid
+        explore_qid_list = get_all_qid(is_popular=True)
+        answer_qid_list = get_all_qid(is_popular=False)
+        union_qid_set = set(explore_qid_list) | set(answer_qid_list)
+        print(f"union qid length: {len(union_qid_set)}")
+        # qid parameter init
+        start = 1
+        count = 5
+        
+        answer_length = 1
+        for question_id in union_qid_set:
+            question_dir = f"{dist_dir}/{question_id}"
+            if not os.path.isdir(question_dir):
+                os.mkdir(question_dir)
+            question_data = yahoo_answers_spider.get_question(question_id)
+            # question json dump
+            with open(f"{question_dir}/question.json", 'w') as json_file:
+                json.dump(question_data, json_file)
+            # answer process
+            answer_count = 0
+            while True:
+                answer_data = yahoo_answers_spider.get_answer_list(question_id,
+                                                                   start=start,
+                                                                   count=count)
+                answer_length = len(answer_data['answers'])
+                if answer_length > 0:
+                    answer_count += 1
+                    # answer json dump
+                    with open(f"{question_dir}/answer_{answer_count}.json", 'w') as json_file:
+                        json.dump(answer_data, json_file)
+                else:
+                    break
+                
+                print(answer_length)
+                start += count
+                
+                time.sleep(1)
+                
+        # qid 內的 reservice
+        #pass
+         
+    
