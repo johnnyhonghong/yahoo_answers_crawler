@@ -145,27 +145,27 @@ class YahooAnswersSpider():
         }
         return self.request_put(payload)
 def get_category_path(category = "") -> str:
-    try:
-        if category != "":
-            category = f"?sid={category}"
-        
-        url = f"https://tw.answers.yahoo.com/dir/index{category}"
-        html = urlopen(url).read()
-        
-        soup = BeautifulSoup(html, 'lxml')
-        print(soup)
-        category_path = soup.findAll(class_ = "CategoryBoard__paths___g8qpm")
-        print(category_path)
-        path = []
-        if category_path:
-            for line in category_path[0].findAll("li"):
-                path.append(line.text)
-            path_str = '/'.join(path)
-        else:
-            print("CategoryBoard__paths___g8qpm not found")
-    except:
-        print("some errors")
-        path_str = "some errors"
+    
+    if category != "":
+        category = f"?sid={category}"
+    
+    url = f"https://tw.answers.yahoo.com/dir/index{category}"
+    html = urlopen(url).read()
+    
+    soup = BeautifulSoup(html, 'lxml')
+    print(soup)
+    category_path = soup.findAll(class_ = "CategoryBoard__paths___g8qpm")
+    print(category_path)
+    path = []
+    if category_path:
+        for line in category_path[0].findAll("li"):
+            path.append(line.text)
+        path_str = '/'.join(path)
+    else:
+        print("CategoryBoard__paths___g8qpm not found")
+
+    print("some errors")
+    path_str = "some errors"
     return path_str
 def get_all_qid(is_popular:bool, category_id: str) -> list:
     offset = ""
