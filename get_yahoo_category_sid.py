@@ -52,3 +52,4 @@ def get_last_layer_category_sid_csv(execute=False) -> list:
 if __name__ == "__main__":
     if not os.path.isfile('./sid.txt'):
         sid_list = get_last_layer_category_sid_csv(execute=True)
+        
