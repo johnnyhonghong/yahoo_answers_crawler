@@ -220,12 +220,15 @@ if __name__ == "__main__":
         print(f"union qid length: {len(union_qid_set)}")
         # qid parameter init
         
-        for question_id in union_qid_set:
-            print(f"\rqid: {question_id}",end="")
+        for pg, question_id in enumerate(union_qid_set):
+            print(f"\rpg:{pg}/len(union_qid_set), qid: {question_id}",end="")
             question_dir = f"{dist_dir}/{question_id}"
             if not os.path.isdir(question_dir):
                 os.mkdir(question_dir)
-            question_data = yahoo_answers_spider.get_question(question_id)
+            try:
+                question_data = yahoo_answers_spider.get_question(question_id)
+            except:
+                continue
             # question json dump
             with open(f"{question_dir}/question.json", 'w') as json_file:
                 json.dump(question_data, json_file)
@@ -234,18 +237,21 @@ if __name__ == "__main__":
             start = 1
             count = 5
             while True:
-                answer_data = yahoo_answers_spider.get_answer_list(question_id,
-                                                                   start=start,
-                                                                   count=count)
-                answer_length = len(answer_data['answers'])
-                if answer_length > 0:
-                    answer_count += 1
-                    # answer json dump
-                    with open(f"{question_dir}/answer_{answer_count}.json", 'w') as json_file:
-                        json.dump(answer_data, json_file)
-                else:
+                try:
+                    answer_data = yahoo_answers_spider.get_answer_list(question_id,
+                                                                       start=start,
+                                                                       count=count)
+                    answer_length = len(answer_data['answers'])
+                    if answer_length > 0:
+                        answer_count += 1
+                        # answer json dump
+                        with open(f"{question_dir}/answer_{answer_count}.json", 'w') as json_file:
+                            json.dump(answer_data, json_file)
+                    else:
+                        break
+                    start += count
+                except:
                     break
-                start += count
                 # get extra question
                 """
                 question_data = yahoo_answers_spider.get_extra_question_list("20210418115252AAO7dbn")
