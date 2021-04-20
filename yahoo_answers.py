@@ -185,7 +185,7 @@ def get_all_qid(is_popular:bool, category_id: str) -> list:
         # get qid
         for question in data['questions']:
             qid_list.append(question['qid'])
-        time.sleep(2)
+        #time.sleep(2)
     print("")
     return qid_list
 if __name__ == "__main__":
@@ -199,12 +199,12 @@ if __name__ == "__main__":
             category_id_list.append(line.replace("\n",""))
     print(category_id_list)
     # 依照sid，先掃qid，再進入qid
-    for category_id in category_id_list:
+    for pg_c, category_id in enumerate(category_id_list):
         
         # get category path
         path_str = get_category_path(category = category_id)
         print(f"path: {path_str}")
-        print(f"sid: {category_id}")
+        print(f"pg_c:{pg_c}, sid: {category_id}")
         # mkdir
         path_list = path_str.split("/")
         level_dir = ""
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         # qid parameter init
         
         for pg, question_id in enumerate(union_qid_set):
-            print(f"\rpg:{pg}/len(union_qid_set), qid: {question_id}",end="")
+            print(f"\rpg:{pg}/{len(union_qid_set)}, qid: {question_id}",end="")
             question_dir = f"{dist_dir}/{question_id}"
             if not os.path.isdir(question_dir):
                 os.mkdir(question_dir)
@@ -256,7 +256,7 @@ if __name__ == "__main__":
                 """
                 question_data = yahoo_answers_spider.get_extra_question_list("20210418115252AAO7dbn")
                 """
-                time.sleep(2)
+                #time.sleep(2)
         print("")
         
     
