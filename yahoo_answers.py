@@ -153,9 +153,7 @@ def get_category_path(category = "") -> str:
         html = urlopen(url).read()
         
         soup = BeautifulSoup(html, 'lxml')
-        print(soup)
         category_path = soup.findAll(class_ = "CategoryBoard__paths___g8qpm")
-        print(category_path)
         path = []
         if category_path:
             for line in category_path[0].findAll("li"):
