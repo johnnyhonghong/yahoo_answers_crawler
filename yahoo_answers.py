@@ -151,8 +151,9 @@ def get_category_path(category = "") -> str:
         
         url = f"https://tw.answers.yahoo.com/dir/index{category}"
         html = urlopen(url).read()
-        print(html)
+        
         soup = BeautifulSoup(html, 'lxml')
+        print(soup)
         category_path = soup.findAll(class_ = "CategoryBoard__paths___g8qpm")
         print(category_path)
         path = []
