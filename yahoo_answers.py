@@ -204,7 +204,7 @@ if __name__ == "__main__":
         # get category path
         path_str = get_category_path(category = category_id)
         print(f"path: {path_str}")
-        print(f"pg_c:{pg_c}, sid: {category_id}")
+        print(f"pg_c:{pg_c+1}/{len(category_id_list)}, sid: {category_id}")
         # mkdir
         path_list = path_str.split("/")
         level_dir = ""
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         # qid parameter init
         
         for pg, question_id in enumerate(union_qid_set):
-            print(f"\rpg:{pg}/{len(union_qid_set)}, qid: {question_id}",end="")
+            print(f"\rpg:{pg+1}/{len(union_qid_set)}, qid: {question_id}",end="")
             question_dir = f"{dist_dir}/{question_id}"
             if not os.path.isdir(question_dir):
                 os.mkdir(question_dir)

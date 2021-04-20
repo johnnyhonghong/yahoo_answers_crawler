@@ -38,7 +38,7 @@ def get_last_layer_category_sid_csv(execute=False) -> list:
             main_sub_dict[key] = sub_dict.keys()
             key_list.extend(sub_dict.keys())
             main_category_dict.update(sub_dict)
-            time.sleep(10)
+            #time.sleep(10)
         with open('sid.txt', 'w') as csv_file:  
             for key, value in main_sub_dict.items():
                 if not value:
