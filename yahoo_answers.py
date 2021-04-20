@@ -201,24 +201,26 @@ if __name__ == "__main__":
     print(category_id_list)
     # 依照sid，先掃qid，再進入qid
     for pg_c, category_id in enumerate(category_id_list):
-        
         # get category path
-        path_str = get_category_path(category = category_id)
-        print(f"path: {path_str}")
-        print(f"pg_c:{pg_c+1}/{len(category_id_list)}, sid: {category_id}")
-        # mkdir
-        path_list = path_str.split("/")
-        level_dir = ""
-        for path_dir in path_list:
-            level_dir = f"{level_dir}/{path_dir}"
-            dist_dir = f"{p_dir}{level_dir}"
-            if not os.path.isdir(dist_dir):
-                os.mkdir(dist_dir)
-        # get all qid
-        explore_qid_list = get_all_qid(is_popular=True, category_id=category_id)
-        answer_qid_list = get_all_qid(is_popular=False, category_id=category_id)
-        union_qid_set = set(explore_qid_list) | set(answer_qid_list)
-        print(f"union qid length: {len(union_qid_set)}")
+        try:
+            path_str = get_category_path(category = category_id)
+            print(f"path: {path_str}")
+            print(f"pg_c:{pg_c+1}/{len(category_id_list)}, sid: {category_id}")
+            # mkdir
+            path_list = path_str.split("/")
+            level_dir = ""
+            for path_dir in path_list:
+                level_dir = f"{level_dir}/{path_dir}"
+                dist_dir = f"{p_dir}{level_dir}"
+                if not os.path.isdir(dist_dir):
+                    os.mkdir(dist_dir)
+            # get all qid
+            explore_qid_list = get_all_qid(is_popular=True, category_id=category_id)
+            answer_qid_list = get_all_qid(is_popular=False, category_id=category_id)
+            union_qid_set = set(explore_qid_list) | set(answer_qid_list)
+            print(f"union qid length: {len(union_qid_set)}")
+        except:
+            continue
         # qid parameter init
         
         for pg, question_id in enumerate(union_qid_set):
