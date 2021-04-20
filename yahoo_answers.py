@@ -185,7 +185,7 @@ def get_all_qid(is_popular:bool, category_id: str) -> list:
         # get qid
         for question in data['questions']:
             qid_list.append(question['qid'])
-        #time.sleep(2)
+        time.sleep(2)
     print("")
     return qid_list
 if __name__ == "__main__":
