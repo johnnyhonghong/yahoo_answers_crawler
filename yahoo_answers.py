@@ -193,6 +193,7 @@ if __name__ == "__main__":
     
     dir_path = ""
     yahoo_answers_spider = YahooAnswersSpider()
+    
     category_id_list = []
     # read sid.txt
     with open("./sid.txt", 'r') as txt_file:
@@ -217,14 +218,14 @@ if __name__ == "__main__":
             # get all qid
             explore_qid_list = get_all_qid(is_popular=True, category_id=category_id)
             answer_qid_list = get_all_qid(is_popular=False, category_id=category_id)
-            union_qid_set = set(explore_qid_list) | set(answer_qid_list)
-            print(f"union qid length: {len(union_qid_set)}")
+            union_qid_list = list(set(explore_qid_list) | set(answer_qid_list))
+            print(f"union qid length: {len(union_qid_list)}")
         except:
             continue
         # qid parameter init
         
-        for pg, question_id in enumerate(union_qid_set):
-            print(f"\rpg:{pg+1}/{len(union_qid_set)}, qid: {question_id}",end="")
+        for pg, question_id in enumerate(union_qid_list):
+            print(f"\rpg:{pg+1}/{len(union_qid_list)}, qid: {question_id}",end="")
             question_dir = f"{dist_dir}/{question_id}"
             if not os.path.isdir(question_dir):
                 os.mkdir(question_dir)
@@ -235,6 +236,13 @@ if __name__ == "__main__":
             # question json dump
             with open(f"{question_dir}/question.json", 'w') as json_file:
                 json.dump(question_data, json_file)
+            # get extra question
+            try:
+                extra_question_data = yahoo_answers_spider.get_extra_question_list(question_id)
+                for extra_qid in extra_question_data:
+                    union_qid_list =list(set(union_qid_list) | {extra_qid['qid']})
+            except:
+                print("extra question error")
             # answer process
             answer_count = 0
             start = 1
@@ -255,15 +263,10 @@ if __name__ == "__main__":
                     start += count
                 except:
                     break
-                # get extra question
-                """
-                question_data = yahoo_answers_spider.get_extra_question_list("20210418115252AAO7dbn")
-                """
+            
                 #time.sleep(2)
-        print("")
         
-    
-        # qid reservice
-        #pass
+            
+        print("")
          
     
